@@ -1,0 +1,23 @@
+Karma: WordGuesserAI (py_evil_hangman/word_guesser.py), run with -k
+
+Design
+- __init__ reads the dictionary once and buckets words by length.
+- get_guess() is a pure "reflex" agent: each turn it rebuilds the candidate set only from the
+  visible GameState. A word stays a candidate if every revealed position matches, and no hidden
+  position holds a letter that was already guessed (it would have been revealed there).
+- For each unguessed letter it partitions the candidates into position-families (the same way the
+  evil word-maker does) and scores the letter by its worst-case (largest) family. It picks the
+  letter with the smallest worst case, i.e. the letter whose answer is guaranteed to cut the word
+  space the most, even against an adversary. Ties prefer letters whose worst case is a hit rather
+  than a miss (a miss costs a guess), then letters that appear in more candidates.
+- Letters that appear in no candidate are skipped (a guaranteed miss). If no candidates remain
+  (the word isn't in the guesser's dictionary) it falls back to English letter-frequency order.
+
+Assumptions
+- The guesser and word-maker share the same dictionary.
+- The word-maker may be adversarial, so minimax is used instead of maximising expected information.
+  Against the honest WordMakerHuman this is still a strong strategy.
+
+Results (10 guesses, default dictionary): the evil maker usually wins on short words (2-5 letters,
+e.g. "buck", "cuddy") since the dictionary has so many near-identical short words; the AI generally
+wins on 8+ letter words (e.g. solved an 8-letter word with 5 misses, a 12-letter word with 3).
